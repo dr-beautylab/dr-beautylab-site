@@ -114,5 +114,7 @@
     "무료 상담과 유료 시술, 진행 순서 안내",
     "반영구 시술 예약 전 알아두면 좋은 팁"
   ],
-  "siteUrl": "https://drbeautylab.co.kr"
+  "siteUrl": "https://drbeautylab.co.kr",
+  "bookingUrl": "https://naver.me/GL80O8yd",
+  "ctaText": "하루 3명 한정, 100% 사전 예약제로 운영됩니다."
 }
