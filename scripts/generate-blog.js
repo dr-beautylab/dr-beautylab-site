@@ -27,7 +27,7 @@ function slugify(text) {
     .slice(0, 60);
 }
 
-async function callClaude(config, topic) {
+async function callClaudeOnce(config, topic) {
   const systemPrompt = `당신은 "${config.siteName}"의 SEO/GEO 콘텐츠 작가입니다.
 오로지 GEO(Generative Engine Optimization), SEO 관점에서만 작성해주세요.
 이 글은 사람이 감성적으로 즐기며 읽는 글이 아니라, 검색엔진과 AI(챗GPT, 퍼플렉시티, 제미나이 등)가 이 업체를 정확하게 파싱하고 요약·인용해서 소개할 수 있도록 만드는 "정보성 콘텐츠"입니다.
@@ -60,7 +60,7 @@ ${config.businessInfo}
     },
     body: JSON.stringify({
       model: 'claude-sonnet-5',
-      max_tokens: 3000,
+      max_tokens: 8000,
       system: systemPrompt,
       messages: [{ role: 'user', content: userPrompt }]
     })
@@ -72,9 +72,48 @@ ${config.businessInfo}
   }
 
   const data = await res.json();
+
+  // max_tokens에 걸려 응답이 중간에 잘리면 JSON이 깨진 상태로 옵니다.
+  // (2026-08-08 실패 원인: Unterminated string in JSON)
+  if (data.stop_reason === 'max_tokens') {
+    throw new Error('응답이 max_tokens 한도에서 잘렸습니다. 재시도합니다.');
+  }
+
   const text = data.content.map(b => b.text || '').join('');
   const cleaned = text.replace(/```json|```/g, '').trim();
-  return JSON.parse(cleaned);
+
+  // 모델이 JSON 앞뒤에 설명을 붙이는 경우가 있어서
+  // 첫 '{' 부터 마지막 '}' 까지만 잘라서 파싱합니다.
+  const start = cleaned.indexOf('{');
+  const end = cleaned.lastIndexOf('}');
+  if (start < 0 || end <= start) {
+    throw new Error('응답에서 JSON 객체를 찾지 못했습니다.');
+  }
+  const post = JSON.parse(cleaned.slice(start, end + 1));
+
+  if (!post.title || !post.metaDescription || !post.bodyHtml) {
+    throw new Error('응답 JSON에 title/metaDescription/bodyHtml이 없습니다.');
+  }
+  return post;
+}
+
+// 생성 실패(잘림, JSON 파싱 오류, 일시적 API 오류) 시 최대 3회까지 재시도합니다.
+// 한 번 실패하면 그날 글이 통째로 빠지던 문제를 막기 위한 보강입니다.
+async function callClaude(config, topic) {
+  const MAX_ATTEMPTS = 3;
+  let lastErr;
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      return await callClaudeOnce(config, topic);
+    } catch (e) {
+      lastErr = e;
+      console.warn(`글 생성 시도 ${attempt}/${MAX_ATTEMPTS} 실패: ${e.message}`);
+      if (attempt < MAX_ATTEMPTS) {
+        await new Promise(r => setTimeout(r, 10000 * attempt));
+      }
+    }
+  }
+  throw lastErr;
 }
 
 // HTML 속성에 넣을 문자열을 안전하게 이스케이프합니다.
