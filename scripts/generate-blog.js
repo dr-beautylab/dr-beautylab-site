@@ -71,7 +71,11 @@ ${config.businessInfo}
 
   if (!res.ok) {
     const errText = await res.text();
-    throw new Error(`Claude API 오류 (${res.status}): ${errText}`);
+    const err = new Error(`Claude API 오류 (${res.status}): ${errText.slice(0, 300)}`);
+    // 429(요청 한도)·5xx(서버 혼잡)는 잠시 뒤 다시 시도하면 대부분 성공하지만,
+    // 400/401 같은 오류(크레딧 소진, 키 무효)는 재시도해도 소용없으니 바로 멈춥니다.
+    err.retryable = res.status === 429 || res.status >= 500;
+    throw err;
   }
 
   const data = await res.json();
@@ -79,7 +83,9 @@ ${config.businessInfo}
   // max_tokens에 걸려 응답이 중간에 잘리면 JSON이 깨진 상태로 옵니다.
   // (2026-08-08 실패 원인: Unterminated string in JSON)
   if (data.stop_reason === 'max_tokens') {
-    throw new Error('응답이 max_tokens 한도에서 잘렸습니다. 재시도합니다.');
+    const e = new Error('응답이 max_tokens 한도에서 잘렸습니다. 재시도합니다.');
+    e.retryable = true;
+    throw e;
   }
 
   const text = data.content.map(b => b.text || '').join('');
@@ -103,7 +109,7 @@ ${config.businessInfo}
 // 생성 실패(잘림, JSON 파싱 오류, 일시적 API 오류) 시 최대 3회까지 재시도합니다.
 // 한 번 실패하면 그날 글이 통째로 빠지던 문제를 막기 위한 보강입니다.
 async function callClaude(config, topic) {
-  const MAX_ATTEMPTS = 3;
+  const MAX_ATTEMPTS = 4;
   let lastErr;
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     try {
@@ -111,8 +117,12 @@ async function callClaude(config, topic) {
     } catch (e) {
       lastErr = e;
       console.warn(`글 생성 시도 ${attempt}/${MAX_ATTEMPTS} 실패: ${e.message}`);
+      // 크레딧 소진·키 무효(400/401 등)는 기다려도 안 풀리므로 바로 실패 처리합니다.
+      if (e.retryable === false) break;
       if (attempt < MAX_ATTEMPTS) {
-        await new Promise(r => setTimeout(r, 10000 * attempt));
+        const waitSec = 30 * attempt; // 30초 → 60초 → 90초
+        console.warn(`${waitSec}초 뒤 재시도...`);
+        await new Promise(r => setTimeout(r, waitSec * 1000));
       }
     }
   }
@@ -335,6 +345,15 @@ async function main() {
   }
 
   const used = readJSON(USED_PATH, { usedTopics: [], posts: [] });
+
+  // 하루에 여러 번 실행되어도(실패 대비 예비 실행) 글은 하루 한 편만.
+  // 이미 오늘 날짜 글이 있으면 조용히 끝냅니다.
+  const todayStr = new Date().toISOString().slice(0, 10);
+  if ((used.posts || []).some(p => p.date === todayStr)) {
+    console.log('오늘(' + todayStr + ') 글은 이미 발행되었습니다. 종료합니다.');
+    return;
+  }
+
   let remaining = config.topics.filter(t => !used.usedTopics.includes(t));
   if (remaining.length === 0) {
     used.usedTopics = [];
