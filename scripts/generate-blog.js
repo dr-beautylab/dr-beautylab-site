@@ -332,6 +332,9 @@ function updateSitemap(config, posts) {
   const today = new Date().toISOString().slice(0, 10);
   const urls = [
     { loc: `${base}/`, mod: today },
+    { loc: `${base}/brow/`, mod: today },
+    { loc: `${base}/scalp/`, mod: today },
+    ...['en', 'ja', 'zh-tw'].flatMap(l => ['/', '/brow/', '/scalp/'].map(p => ({ loc: `${base}/${l}${p}`, mod: today }))),
     { loc: `${base}/blog/`, mod: today },
     ...posts.map(p => ({
       loc: `${base}/blog/posts/${encodeURIComponent(p.slug)}`,
