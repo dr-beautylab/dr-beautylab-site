@@ -260,6 +260,18 @@ details .a{padding:0 0 16px;font-size:13.5px;color:var(--ink-soft);line-height:1
 .event b{display:block;font-family:var(--f-display);font-size:18px;line-height:1.45;margin-bottom:8px;letter-spacing:-.02em}
 .event p{font-size:12px;line-height:1.6;margin:0;color:rgba(255,255,255,.82)}
 </style>
+<!-- Meta Pixel -->
+<script>
+!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+document,'script','https://connect.facebook.net/en_US/fbevents.js');
+fbq('init','1745819516040772');
+fbq('track','PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1745819516040772&ev=PageView&noscript=1" alt=""></noscript>
+<!-- End Meta Pixel -->
 </head>
 <body>
 <main class="wrap">
@@ -379,6 +391,8 @@ details .a{padding:0 0 16px;font-size:13.5px;color:var(--ink-soft);line-height:1
     if(h.indexOf('talk.naver.com')>=0) track('Contact',{method:'naver_talktalk'});
     else if(h.indexOf('pf.kakao.com')>=0) track('Contact',{method:'kakao'});
     else if(h.indexOf('tel:')===0) track('Contact',{method:'phone'});
+    else if(h.indexOf('line.me')>=0) track('Contact',{method:'line'});
+    else if(h.indexOf('ig.me')>=0) track('Contact',{method:'instagram_dm'});
     else if(h.indexOf('naver.me/GL80O8yd')>=0) track('Schedule',{method:'naver_booking'});
   },true);
   var fired={};
