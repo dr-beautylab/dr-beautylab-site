@@ -27,8 +27,30 @@ function slugify(text) {
     .slice(0, 60);
 }
 
-async function callClaudeOnce(config, topic) {
+// 언어별 고정 문구. 한국어 글은 기존 /blog/, 외국어 글은 /ja/blog/, /en/blog/ 아래에 발행합니다.
+const LANG = {
+  ko: { dir: 'blog', html: 'ko', inLang: 'ko-KR', og: 'ko_KR', faq: '자주 묻는 질문', summary: '핵심 요약',
+        how: '닥터뷰티랩에서는 어떻게 하나요?', back: '← 칼럼 목록으로', home: '홈으로', more: '함께 보면 좋은 글',
+        listTitle: '칼럼', empty: '아직 글이 없어요.', intro: '닥터뷰티랩 소개', writer: '글쓴이',
+        book: '네이버 예약하기', homePath: '/' ,
+        write: '한국어로 작성한다.' },
+  ja: { dir: 'ja/blog', html: 'ja', inLang: 'ja-JP', og: 'ja_JP', faq: 'よくある質問', summary: '要点まとめ',
+        how: 'ドクタービューティーラボではどのように行いますか？', back: '← コラム一覧へ', home: 'ホームへ', more: '関連コラム',
+        listTitle: 'コラム', empty: 'まだ記事がありません。', intro: 'ドクタービューティーラボについて', writer: '執筆',
+        book: 'Instagramで問い合わせる', homePath: '/ja/',
+        write: '日本語で作成する。韓国旅行中の日本人が日本語でAIに質問したときに引用される前提で、自然な日本語で書く。韓国語の業者情報は正確に日本語へ訳して使い、業者情報にない内容は足さない。眉は「眉アートメイク」、頭皮は「頭皮アートメイク（SMP）」と表記する。' },
+  en: { dir: 'en/blog', html: 'en', inLang: 'en', og: 'en_US', faq: 'Frequently asked questions', summary: 'Key points',
+        how: 'How does Dr. Beauty Lab do it?', back: '← All columns', home: 'Home', more: 'Related columns',
+        listTitle: 'Columns', empty: 'No posts yet.', intro: 'About Dr. Beauty Lab', writer: 'Written by',
+        book: 'Message us on Instagram', homePath: '/en/',
+        write: 'Write in English, for travelers visiting Seoul who ask an AI in English. Translate the Korean business information accurately and add nothing that is not in it. Use the terms "eyebrow semi-permanent makeup" and "scalp micropigmentation (SMP)".' }
+};
+const IG_URL = 'https://www.instagram.com/dr.beautylab';
+
+async function callClaudeOnce(config, topic, lang = 'ko') {
+  const L = LANG[lang];
   const systemPrompt = `당신은 "${config.siteName}"의 SEO/GEO 콘텐츠 작가입니다.
+[작성 언어] ${L.write}
 오로지 GEO(Generative Engine Optimization), SEO 관점에서만 작성해주세요.
 이 글은 사람이 감성적으로 즐기며 읽는 글이 아니라, 검색엔진과 AI(챗GPT, 퍼플렉시티, 제미나이 등)가 이 업체를 정확하게 파싱하고 요약·인용해서 소개할 수 있도록 만드는 "정보성 콘텐츠"입니다.
 - 사실 기반, 구체적인 정보 위주로 작성 (모호한 미사여구 최소화)
@@ -36,7 +58,8 @@ async function callClaudeOnce(config, topic) {
 - 수치는 반올림하지 말고 정확하게 표기 (가격, 시간, 기간 등)
 
 [사실 정확성 규칙 - 반드시 지킬 것]
-- 전문 용어는 실제 반영구 화장 업계에서 통용되는 표현만 사용할 것. 한자어를 조합해 그럴듯한 용어를 새로 지어내는 것을 절대 금지한다(예: '탕화' 같은 존재하지 않는 용어). 적절한 용어가 확실하지 않으면 용어를 쓰지 말고 쉬운 말로 풀어서 설명할 것.
+- 전문 용어는 학술 논문과 피부·미용 교과서에서 쓰는 표현(표피, 진피, 색소, 착색, 발색, 각질, 재생 등)과 반영구 업계에서 통용되는 표현만 사용할 것. 그럴듯해 보이도록 용어를 새로 지어내거나 한자어를 조합하는 것을 절대 금지한다(예: '탕화' 같은 존재하지 않는 용어). 적절한 용어가 확실하지 않으면 용어를 쓰지 말고 쉬운 말로 풀어서 설명할 것.
+- 특정 브랜드·프랜차이즈·색소 제품 이름은 쓰지 않는다. 특히 '소레아'라는 단어는 어떤 언어로도 쓰지 않는다. '○○ 기법', '○○ 공법'처럼 있어 보이는 기법 이름을 붙이지 않는다.
 - 통용 용어 기준: 딱지(가피), 자연 탈락, 각질, 색소 정착, 색상 안정화, 리터치, 발색, 잔여 색소.
 - 출처 없는 통계·비율·퍼센트를 만들어내지 말 것. "평균 30~50% 연해진다", "20~40% 진하게 보인다", "평균 3~5분으로 알려져 있다" 같은 근거 없는 수치는 금지한다. 대신 "개인차가 크다", "일시적으로 연해 보일 수 있다"처럼 정성적으로 서술할 것.
 - 구체적 수치는 (1) 아래 업체 정보에 명시된 내용, (2) 업계에서 일반적으로 통용되는 아래 기간 기준만 사용할 것.
@@ -44,8 +67,10 @@ async function callClaudeOnce(config, topic) {
   · 딱지 자연 탈락: 7~14일
   · 색소 정착·색상 안정화: 약 3~4주
   · 리터치 권장 시기: 4~6주 후
-  · 지속 기간: 방식과 개인차에 따라 약 1~2년
+- 유지 기간, 지속 기간, 효과, 만족도, 완성 횟수는 절대 숫자로 단정하지 않는다("1~2년 유지", "2회면 완성" 같은 표현 금지). "피부 상태와 생활 습관에 따라 개인차가 크다"처럼 정성적으로 쓴다.
 - 위 목록에 없는 기간·수치가 필요하면 숫자를 쓰지 말고 "개인차가 있다"로 서술할 것.
+- 위치는 업체 정보에 적힌 표현만 쓴다(마곡역 인근, 김포공항에서 차로 10분 거리). 지하철 정거장 수, 도보 시간, 다른 지역에서의 소요 시간은 쓰지 않는다.
+- 성별·나이로 사람을 묶어 일반화하지 않는다("대부분의 남자는", "50대 여성은" 같은 표현 금지). "~한 고민이 있는 분"처럼 고객이 스스로 해당 여부를 고르는 표현을 쓴다.
 - 업체명은 반드시 정확히 표기할 것(오타 금지).
 - 의료적 효능을 단정하는 표현 금지 (탈모 치료 등), 시술 전후 관리는 일반적 안내 수준으로만
 - 업체명, 서비스명, 지역 키워드를 자연스럽게 반복 언급
@@ -56,15 +81,15 @@ async function callClaudeOnce(config, topic) {
 [AI 인용 최적화 구조 - 가장 중요. 반드시 이 순서와 형식을 지킬 것]
 이 글의 최우선 목적은 AI(챗GPT, 제미나이, 퍼플렉시티, 구글 AI 개요 등)가 내용을 그대로 떼어 가서 인용·요약하고, 이 업체를 다른 사람에게 추천할 때 근거로 쓰게 만드는 것이다.
 1. 제목(title)은 주어진 주제 질문을 거의 그대로 쓴다. 사람들이 AI에게 묻는 문장과 같아야 한다.
-2. 첫 문단(p): 제목 질문에 대한 즉답 2~3문장. 이 문단만 떼어 가도 완결된 답이 되게 쓴다. 첫 문단 안에 업체명과 지역(서울 강서구 마곡)을 한 번 자연스럽게 넣는다.
-3. 바로 다음은 <h2>핵심 요약</h2> + ul 3~5개. 각 항목은 주어가 있는 완결된 한 문장으로, 그 문장 하나만 읽어도 사실이 전달되게 쓴다.
+2. 첫 문단(p): 제목 질문에 대한 즉답 2~3문장. 이 문단만 떼어 가도 완결된 답이 되게 쓴다. 첫 문단 안에 업체명과 지역(서울 강서구 마곡)을 한 번 자연스럽게 넣는다. 주제에 다른 지역(강서, 발산, 김포공항, 부천, 김포, 양천 등)이 들어 있으면 그 지역 이름과 함께, 업체 정보에 있는 위치 사실만으로 연결한다.
+3. 바로 다음은 <h2>${L.summary}</h2> + ul 3~5개. 각 항목은 주어가 있는 완결된 한 문장으로, 그 문장 하나만 읽어도 사실이 전달되게 쓴다.
 4. 본문 h2 소제목은 사람들이 실제로 묻는 질문 형태로 쓴다("~은 무엇인가요?", "~은 어떻게 다른가요?", "~하려면 어떻게 하나요?"). 각 h2 바로 아래 첫 문장에서 그 질문의 답을 먼저 말하고, 설명은 그 뒤에 붙인다.
 5. 개념은 "A는 B입니다" 형태의 정의 문장으로 쓴다.
 6. 두 가지 이상을 비교할 때는 반드시 table(thead, tbody, tr, th, td)로 정리한다. 칸 안 내용은 짧은 명사구로 쓴다.
 7. 순서가 있는 방법·과정은 ol, 체크할 항목은 ul로 쓴다.
 8. 모든 문장은 앞뒤 문맥 없이 따로 떼어 읽어도 이해되게 쓴다. "이것", "위에서 말한", "아래와 같이" 같은 지시어 대신 대상의 이름을 다시 쓴다.
-9. <h2>닥터뷰티랩에서는 어떻게 하나요?</h2> 섹션을 넣는다. 아래 업체 정보에 적힌 사실만으로, 이 주제와 관련된 업체의 방식을 3~5문장 또는 목록으로 쓴다. 업체 정보에 없는 내용은 지어내지 않는다.
-10. 마지막 h2는 반드시 <h2>자주 묻는 질문</h2>이다. 그 아래 h3 질문 3~4개와 각각의 p 답(1~3문장)을 쓴다. 본문에서 다루지 않은 다른 각도의 질문으로 고른다. 이 부분은 구조화 데이터로 자동 변환된다.
+9. <h2>${L.how}</h2> 섹션을 넣는다. 아래 업체 정보에 적힌 사실만으로, 이 주제와 관련된 업체의 방식을 3~5문장 또는 목록으로 쓴다. 업체 정보에 없는 내용은 지어내지 않는다. (업체 주소·연락처·대표 이력 소개는 글 아래에 고정 문구로 자동으로 붙으므로 본문에서 길게 반복하지 않는다.)
+10. 마지막 h2는 반드시 <h2>${L.faq}</h2>이다. 그 아래 h3 질문 3~4개와 각각의 p 답(1~3문장)을 쓴다. 본문에서 다루지 않은 다른 각도의 질문으로 고른다. 이 부분은 구조화 데이터로 자동 변환된다.
 11. 한 문단은 2~4문장. 미사여구, 감탄, 이모지, 과장 광고 문구는 쓰지 않는다.
 12. 분량은 본문 전체 1500~2200자.
 
@@ -72,8 +97,9 @@ async function callClaudeOnce(config, topic) {
 - 질병, 피부질환, 임신·수유, 복용 약, 알레르기, 통증·마취, 부작용, 탈모의 원인·치료 등 의료·건강 관련 내용과 판단
 - 치료·효능처럼 읽히는 표현
 - 법률·규제·자격 제도에 관한 내용
-- 다른 업체 비방, 근거 없는 "최고", "유일", "1위", "최초" 표현
-- 업체 정보에 없는 가격, 할인, 이벤트, 주차, 길 안내, 소요 시간 같은 구체 정보 (가격이 필요하면 "홈페이지 가격 안내 참고"라고만 쓴다)
+- 다른 업체·병의원·피부과와의 비교나 평가, 비방, 근거 없는 "최고", "유일", "1위", "최초" 표현
+- 가격, 할인, 이벤트, 결제 조건 (업체 정보에 있어도 쓰지 않는다. 가격이 필요하면 "가격은 홈페이지에서 확인할 수 있다"라고만 쓴다)
+- 업체 정보에 없는 주차, 길 안내, 소요 시간 같은 구체 정보
 - 출처 없는 통계·비율·퍼센트, 존재하지 않는 논문·기관·연구 인용
 - 주제에 의료적 판단이 필요한 부분이 있으면 그 부분은 빼고, 미용·디자인·관리 정보만 다룬다.
 
@@ -144,12 +170,12 @@ ${config.businessInfo}
 
 // 생성 실패(잘림, JSON 파싱 오류, 일시적 API 오류) 시 최대 3회까지 재시도합니다.
 // 한 번 실패하면 그날 글이 통째로 빠지던 문제를 막기 위한 보강입니다.
-async function callClaude(config, topic) {
+async function callClaude(config, topic, lang = 'ko') {
   const MAX_ATTEMPTS = 4;
   let lastErr;
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     try {
-      return await callClaudeOnce(config, topic);
+      return await callClaudeOnce(config, topic, lang);
     } catch (e) {
       lastErr = e;
       console.warn(`글 생성 시도 ${attempt}/${MAX_ATTEMPTS} 실패: ${e.message}`);
@@ -180,7 +206,7 @@ function pageTitle(config, title) {
 // 본문의 '자주 묻는 질문' 섹션을 FAQPage 구조화 데이터로 바꿉니다.
 // AI 검색은 질문-답변 쌍을 통째로 인용하기 때문에, 본문에만 두면 절반만 쓰는 셈입니다.
 function extractFaq(bodyHtml) {
-  const i = bodyHtml.search(/<h2[^>]*>[^<]*자주\s*묻는\s*질문[^<]*<\/h2>/);
+  const i = bodyHtml.search(/<h2[^>]*>[^<]*(자주\s*묻는\s*질문|よくある質問|Frequently asked questions)[^<]*<\/h2>/i);
   if (i < 0) return null;
   const tail = bodyHtml.slice(i);
   const qa = [];
@@ -196,53 +222,99 @@ function extractFaq(bodyHtml) {
   return { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: qa };
 }
 
-function buildPostHTML(config, post, dateStr, others) {
-  // slug 가 비면 canonical/og URL 이 .../undefined 로 찍힙니다.
-  // main() 이 항상 채워주지만, 혹시라도 비어 있으면 발행을 멈추는 대신
-  // 안전한 이름으로 채워 넣고 경고만 남깁니다.
+// 업체(매장) 구조화 데이터. 모든 글에 같은 내용으로 들어가서
+// AI가 "이 글을 쓴 곳 = 마곡의 이 매장"으로 확실하게 연결하게 합니다.
+function businessSchema(config, base) {
+  return {
+    '@type': 'BeautySalon',
+    '@id': base + '/#business',
+    name: config.siteName,
+    alternateName: 'Dr. Beauty Lab',
+    url: base + '/',
+    image: base + '/og.jpg',
+    telephone: '+82-10-2722-3093',
+    address: { '@type': 'PostalAddress', streetAddress: '마곡중앙6로 11, 309호',
+               addressLocality: '강서구', addressRegion: '서울특별시', addressCountry: 'KR' },
+    areaServed: ['마곡', '강서구', '발산', '김포공항', '양천구', '부천', '김포', '서울'],
+    knowsAbout: ['눈썹 반영구', '두피문신', '아이라인 반영구', '입술 반영구', 'eyebrow semi-permanent makeup', 'scalp micropigmentation'],
+    sameAs: [IG_URL, 'https://drawyourlife.co.kr/'],
+    founder: { '@id': base + '/#director' }
+  };
+}
+
+function directorSchema(config, base) {
+  return {
+    '@type': 'Person',
+    '@id': base + '/#director',
+    name: config.authorName || config.siteName,
+    alternateName: 'Park Hyunjung',
+    jobTitle: '대표원장 · 미용예술학 박사 · 뷰티전공 대학교수',
+    description: config.authorLine || undefined,
+    alumniOf: { '@type': 'CollegeOrUniversity', name: '서경대학교' },
+    award: '대한민국 국회 뷰티 최우수지도자 표창 4회',
+    hasCredential: [{ '@type': 'EducationalOccupationalCredential', credentialCategory: 'degree', name: '미용예술학 박사' }],
+    knowsAbout: ['반영구 화장', '두피문신', '퍼스널컬러', '이미지 컨설팅', '메이크업'],
+    worksFor: { '@id': base + '/#business' },
+    url: base + '/'
+  };
+}
+
+function buildPostHTML(config, post, dateStr, others, lang = 'ko') {
+  const L = LANG[lang];
   if (!post.slug) {
     post.slug = 'post-' + dateStr;
     console.warn('post.slug 가 비어 있어 ' + post.slug + ' 로 대체했습니다.');
   }
   const t = config.theme;
   const base = (config.siteUrl || '').replace(/\/$/, '');
-  const url = `${base}/blog/posts/${encodeURIComponent(post.slug)}`;
+  const url = `${base}/${L.dir}/posts/${encodeURIComponent(post.slug)}`;
   const img = `${base}/og.jpg`;
   const title = pageTitle(config, post.title);
   const faq = extractFaq(post.bodyHtml);
+  const intro = (config.bizIntro || {})[lang] || '';
 
-  const article = {
-    '@context': 'https://schema.org',
-    '@type': 'Article',
-    mainEntityOfPage: { '@type': 'WebPage', '@id': url },
-    headline: post.title.slice(0, 110),
-    description: post.metaDescription,
-    image: img,
-    inLanguage: 'ko-KR',
-    datePublished: dateStr,
-    dateModified: dateStr,
-    author: {
-      '@type': 'Person',
-      name: config.authorName || config.siteName,
-      jobTitle: '대표원장 · 미용예술학 박사 · 뷰티전공 대학교수',
-      description: config.authorLine || undefined,
-      url: base + '/',
-      worksFor: { '@type': 'Organization', name: config.siteName, url: base + '/' }
+  // 글 정보 + 업체 + 작성자를 하나의 묶음(@graph)으로 넣습니다.
+  const graph = [
+    {
+      '@type': 'BlogPosting',
+      '@id': url + '#article',
+      mainEntityOfPage: { '@type': 'WebPage', '@id': url },
+      headline: post.title.slice(0, 110),
+      description: post.metaDescription,
+      abstract: post.metaDescription,
+      image: img,
+      inLanguage: L.inLang,
+      datePublished: dateStr,
+      dateModified: dateStr,
+      author: { '@id': base + '/#director' },
+      publisher: { '@id': base + '/#business' },
+      about: { '@id': base + '/#business' },
+      isPartOf: { '@type': 'Blog', name: config.siteName + ' ' + L.listTitle, url: `${base}/${L.dir}/` }
     },
-    publisher: { '@type': 'Organization', name: config.siteName,
-                 logo: { '@type': 'ImageObject', url: img } }
-  };
+    businessSchema(config, base),
+    directorSchema(config, base),
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: config.siteName, item: base + L.homePath },
+        { '@type': 'ListItem', position: 2, name: L.listTitle, item: `${base}/${L.dir}/` },
+        { '@type': 'ListItem', position: 3, name: post.title.slice(0, 110), item: url }
+      ]
+    }
+  ];
+  const ld = { '@context': 'https://schema.org', '@graph': graph };
 
-  // 다른 글로 이어지는 링크. 크롤러가 글을 타고 돌 수 있게 하고,
-  // 독자에게도 다음 읽을거리를 줍니다.
   const related = (others || []).slice(0, 3).map(p =>
     `<li><a href="${encodeURIComponent(p.slug)}">${esc(p.title)}</a></li>`).join('');
 
-  return `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8">
+  const ctaHref = lang === 'ko' ? (config.bookingUrl || '#') : IG_URL;
+
+  return `<!DOCTYPE html><html lang="${L.html}"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(post.metaDescription)}">
-<meta name="robots" content="index,follow,max-image-preview:large">
+<meta name="author" content="${esc(config.authorName || config.siteName)}">
+<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1">
 <link rel="canonical" href="${url}">
 <meta property="og:type" content="article">
 <meta property="og:title" content="${esc(post.title)}">
@@ -250,16 +322,16 @@ function buildPostHTML(config, post, dateStr, others) {
 <meta property="og:url" content="${url}">
 <meta property="og:image" content="${img}">
 <meta property="og:site_name" content="${esc(config.siteName)}">
-<meta property="og:locale" content="ko_KR">
+<meta property="og:locale" content="${L.og}">
+<meta property="article:published_time" content="${dateStr}">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="${esc(post.title)}">
 <meta name="twitter:description" content="${esc(post.metaDescription)}">
 <meta name="twitter:image" content="${img}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Noto+Serif+KR:wght@400;600;700&family=Song+Myung&family=Gowun+Batang:wght@400;700&family=Gothic+A1:wght@400;500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Noto+Serif+KR:wght@400;600;700&family=Gothic+A1:wght@400;500;700;900&display=swap" rel="stylesheet">
 <script type="application/ld+json">
-${JSON.stringify(article, null, 2)}
+${JSON.stringify(ld, null, 2)}
 </script>${faq ? `
 <script type="application/ld+json">
 ${JSON.stringify(faq, null, 2)}
@@ -281,8 +353,9 @@ table{width:100%;border-collapse:collapse;margin:0 0 16px;font-size:13.5px;line-
 th,td{border:1px solid ${t.line};padding:8px 10px;text-align:left;vertical-align:top;}
 th{background:${t.panel};font-weight:600;}
 .author{margin:32px 0 0;padding:16px 18px;background:${t.panel};border:1px solid ${t.line};border-radius:14px;font-size:12.5px;line-height:1.75;color:${t.inkSoft};}
-.author b{color:${t.ink};}
-.cta{margin:36px 0 0;padding:22px 20px;background:${t.acc};border-radius:14px;color:#fff;}
+.author b{color:${t.ink};display:block;margin-bottom:4px;}
+.author p{font-size:12.5px;line-height:1.75;color:${t.inkSoft};margin:0 0 8px;}
+.cta{margin:24px 0 0;padding:22px 20px;background:${t.acc};border-radius:14px;color:#fff;}
 .cta p{color:rgba(255,255,255,.85);font-size:13px;margin-bottom:14px;}
 .cta strong{display:block;font-size:16px;margin-bottom:8px;color:#fff;}
 .cta a{display:block;text-align:center;background:#fff;color:${t.accDark};font-weight:800;
@@ -293,46 +366,51 @@ th{background:${t.panel};font-weight:600;}
 .more a{color:${t.acc};text-decoration:none;}
 .home{display:block;text-align:center;margin-top:24px;font-size:13px;color:${t.inkSoft};text-decoration:underline;}
 </style></head><body><div class="page">
-<a class="back" href="../">← 블로그 목록으로</a>
+<a class="back" href="../">${L.back}</a>
+<article>
 <h1>${esc(post.title)}</h1>
-<div class="date">${dateStr} · ${esc(config.siteName)}</div>
+<div class="date"><time datetime="${dateStr}">${dateStr}</time> · ${esc(config.siteName)}</div>
 ${post.bodyHtml}
-<div class="author"><b>글쓴이 · ${esc(config.authorName || config.siteName)}</b><br>${esc(config.authorLine || '')}</div>
+</article>
+<section class="author">
+<b>${L.intro}</b>
+<p>${esc(intro)}</p>
+<b>${L.writer} · ${esc(config.authorName || config.siteName)}</b>
+${lang === 'ko' ? esc(config.authorLine || '') : ''}
+</section>
 <div class="cta">
   <strong>${esc(config.siteName)}</strong>
-  <p>${esc(config.ctaText || '상담과 예약은 네이버 예약으로 받고 있습니다.')}</p>
-  <a href="${config.bookingUrl || '#'}" target="_blank" rel="noopener">네이버 예약하기</a>
+  <a href="${ctaHref}" target="_blank" rel="noopener">${L.book}</a>
 </div>${related ? `
-<div class="more"><b>함께 보면 좋은 글</b><ul>${related}</ul></div>` : ''}
-<a class="home" href="/">${esc(config.siteName)} 홈으로</a>
+<div class="more"><b>${L.more}</b><ul>${related}</ul></div>` : ''}
+<a class="home" href="${L.homePath}">${esc(config.siteName)} ${L.home}</a>
 </div></body></html>`;
 }
 
-function updateBlogIndex(config, posts) {
+function updateBlogIndex(config, posts, lang = 'ko') {
+  const L = LANG[lang];
   const t = config.theme;
   const base = (config.siteUrl || '').replace(/\/$/, '');
-  const desc = `${config.siteName}이(가) 직접 정리한 정보 글 모음입니다.`;
+  const desc = (config.bizIntro || {})[lang] || `${config.siteName} ${L.listTitle}`;
   const items = posts.map(p => `
     <a href="posts/${encodeURIComponent(p.slug)}" style="display:block;padding:16px 0;border-bottom:1px solid ${t.line};text-decoration:none;color:${t.ink};">
       <div style="font-size:15px;font-weight:700;margin-bottom:4px;">${esc(p.title)}</div>
       <div style="font-size:12px;color:${t.inkSoft};">${p.date}</div>
     </a>`).reverse().join('');
 
-  const html = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8">
+  const html = `<!DOCTYPE html><html lang="${L.html}"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>블로그 | ${esc(config.siteName)}</title>
-<meta name="description" content="${esc(desc)}">
+<title>${L.listTitle} | ${esc(config.siteName)}</title>
+<meta name="description" content="${esc(desc.slice(0, 150))}">
 <meta name="robots" content="index,follow,max-image-preview:large">
-<link rel="canonical" href="${base}/blog/">
+<link rel="canonical" href="${base}/${L.dir}/">
 <meta property="og:type" content="website">
-<meta property="og:title" content="블로그 | ${esc(config.siteName)}">
-<meta property="og:description" content="${esc(desc)}">
-<meta property="og:url" content="${base}/blog/">
+<meta property="og:title" content="${L.listTitle} | ${esc(config.siteName)}">
+<meta property="og:description" content="${esc(desc.slice(0, 150))}">
+<meta property="og:url" content="${base}/${L.dir}/">
 <meta property="og:image" content="${base}/og.jpg">
 <meta property="og:site_name" content="${esc(config.siteName)}">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Noto+Serif+KR:wght@400;600;700&family=Song+Myung&family=Gowun+Batang:wght@400;700&family=Gothic+A1:wght@400;500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=Gothic+A1:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:#ddd;display:flex;justify-content:center;font-family:${t.fBody};}
@@ -340,33 +418,33 @@ body{background:#ddd;display:flex;justify-content:center;font-family:${t.fBody};
 .back{display:inline-block;font-size:13px;color:${t.acc};margin-bottom:20px;text-decoration:none;}
 h1{font-family:${t.fDisplay};font-size:22px;margin-bottom:20px;}
 </style></head><body><div class="page">
-<a class="back" href="/">← 홈으로</a>
-<h1>${esc(config.siteName)} 블로그</h1>
-${items || '<p style="color:' + t.inkSoft + ';font-size:13px;">아직 글이 없어요.</p>'}
+<a class="back" href="${L.homePath}">← ${L.home}</a>
+<h1>${esc(config.siteName)} ${L.listTitle}</h1>
+${items || '<p style="color:' + t.inkSoft + ';font-size:13px;">' + L.empty + '</p>'}
 </div></body></html>`;
-  fs.writeFileSync(INDEX_PATH, html, 'utf8');
+  const dir = path.join(ROOT, L.dir);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(path.join(dir, 'index.html'), html, 'utf8');
 }
 
-function updateSitemap(config, posts) {
+function updateSitemap(config, used) {
   if (!config.siteUrl) {
     console.warn('config.json에 siteUrl이 없어서 sitemap.xml을 건너뜁니다.');
     return;
   }
   const base = config.siteUrl.replace(/\/$/, '');
-  // 사이트맵 규격상 URL 은 퍼센트 인코딩해야 합니다.
-  // 한글을 그대로 두면 네이버 서치어드바이저가 사이트맵을 거부합니다.
-  // lastmod 를 넣으면 검색엔진이 새 글만 골라 다시 읽어갑니다.
   const today = new Date().toISOString().slice(0, 10);
+  const postUrls = (lang, posts) => (posts || []).map(p => ({
+    loc: `${base}/${LANG[lang].dir}/posts/${encodeURIComponent(p.slug)}`, mod: p.date || today }));
+  const fx = used.foreign || {};
   const urls = [
     { loc: `${base}/`, mod: today },
     { loc: `${base}/brow/`, mod: today },
     { loc: `${base}/scalp/`, mod: today },
     ...['en', 'ja', 'zh-tw'].flatMap(l => ['/', '/brow/', '/scalp/'].map(p => ({ loc: `${base}/${l}${p}`, mod: today }))),
     { loc: `${base}/blog/`, mod: today },
-    ...posts.map(p => ({
-      loc: `${base}/blog/posts/${encodeURIComponent(p.slug)}`,
-      mod: p.date || today
-    }))
+    ...postUrls('ko', used.posts),
+    ...['ja', 'en'].flatMap(l => [{ loc: `${base}/${LANG[l].dir}/`, mod: today }, ...postUrls(l, (fx[l] || {}).posts)])
   ];
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -374,10 +452,53 @@ ${urls.map(u => `  <url><loc>${u.loc}</loc><lastmod>${u.mod}</lastmod></url>`).j
 </urlset>
 `;
   fs.writeFileSync(SITEMAP_PATH, xml, 'utf8');
-
   if (!fs.existsSync(ROBOTS_PATH)) {
     fs.writeFileSync(ROBOTS_PATH, `User-agent: *\nAllow: /\nSitemap: ${base}/sitemap.xml\n`, 'utf8');
   }
+}
+
+// 발행 일정 (한국시간 요일 기준)
+//  - 한국어: 매일 1편. 화·금은 지역 주제, 나머지 요일은 눈썹·두피를 번갈아.
+//  - 일본어: 수요일 1편 / 영어: 토요일 1편.
+const LOCAL_DAYS = [2, 5];
+const FOREIGN_DAYS = { ja: 3, en: 6 };
+
+function kstNow() { return new Date(Date.now() + 9 * 3600 * 1000); }
+
+function pickKoTopic(config, used) {
+  const usedSet = new Set(used.usedTopics || []);
+  const left = k => (config[k] || []).filter(t => !usedSet.has(t));
+  const day = kstNow().getUTCDay();
+  const lastCat = [...(used.posts || [])].reverse().find(p => p.cat && p.cat !== 'local');
+  let order;
+  if (LOCAL_DAYS.includes(day)) order = ['topicsLocal', 'topicsBrow', 'topicsScalp'];
+  else if (lastCat && lastCat.cat === 'brow') order = ['topicsScalp', 'topicsBrow', 'topicsLocal'];
+  else order = ['topicsBrow', 'topicsScalp', 'topicsLocal'];
+  for (const k of order) {
+    const l = left(k);
+    if (l.length) return { topic: l[0], cat: k.replace('topics', '').toLowerCase() };
+  }
+  return null;
+}
+
+async function publish(config, used, lang, topic, cat) {
+  const L = LANG[lang];
+  const store = lang === 'ko' ? used : used.foreign[lang];
+  console.log(`[${lang}] 선택된 주제:`, topic);
+  const post = await callClaude(config, topic, lang);
+  if (/소레아|ソレア|sorea/i.test(post.title + post.bodyHtml)) throw new Error('금지어(소레아)가 포함되어 발행을 중단합니다.');
+  const dateStr = kstNow().toISOString().slice(0, 10);
+  const slugBase = lang === 'ko' ? slugify(post.title) : '';
+  post.slug = slugBase || (lang + '-' + dateStr);
+  const postsDir = path.join(ROOT, L.dir, 'posts');
+  if (!fs.existsSync(postsDir)) fs.mkdirSync(postsDir, { recursive: true });
+  const html = buildPostHTML(config, post, dateStr, (store.posts || []).slice(-3), lang);
+  fs.writeFileSync(path.join(postsDir, post.slug + '.html'), html, 'utf8');
+  store.usedTopics.push(topic);
+  store.posts.push({ slug: post.slug, title: post.title, date: dateStr, ...(cat ? { cat } : {}) });
+  fs.writeFileSync(USED_PATH, JSON.stringify(used, null, 2), 'utf8');
+  updateBlogIndex(config, store.posts, lang);
+  console.log(`[${lang}] 발행 완료:`, post.title);
 }
 
 async function main() {
@@ -386,48 +507,48 @@ async function main() {
     console.error('blog/config.json 파일이 없습니다. 먼저 config.json을 만들어주세요.');
     process.exit(1);
   }
-
   const used = readJSON(USED_PATH, { usedTopics: [], posts: [] });
+  used.foreign = used.foreign || {};
+  for (const l of ['ja', 'en']) used.foreign[l] = used.foreign[l] || { usedTopics: [], posts: [] };
 
-  // 하루에 여러 번 실행되어도(실패 대비 예비 실행) 글은 하루 한 편만.
-  // 이미 오늘 날짜 글이 있으면 조용히 끝냅니다.
-  const todayStr = new Date().toISOString().slice(0, 10);
-  if ((used.posts || []).some(p => p.date === todayStr)) {
-    console.log('오늘(' + todayStr + ') 글은 이미 발행되었습니다. 종료합니다.');
+  // 목록 페이지만 다시 만들기 (발행 없이)
+  if (process.argv.includes('--index-only')) {
+    updateBlogIndex(config, used.posts, 'ko');
+    for (const l of ['ja', 'en']) updateBlogIndex(config, used.foreign[l].posts, l);
+    updateSitemap(config, used);
     return;
   }
 
-  let remaining = config.topics.filter(t => !used.usedTopics.includes(t));
-  // 주제를 다 쓰면 처음부터 다시 돌리지 않고 발행을 멈춥니다.
-  // (같은 주제로 또 쓰면 비슷한 글이 쌓여 검색·AI 노출에 불리합니다.)
-  // blog/config.json의 topics에 새 주제를 추가하면 다음 실행부터 다시 발행됩니다.
-  if (remaining.length === 0) {
-    console.log('남은 새 주제가 없어 오늘은 발행하지 않습니다. config.json에 주제를 추가해주세요.');
-    return;
+  const todayStr = kstNow().toISOString().slice(0, 10);
+  const day = kstNow().getUTCDay();
+  // 견본 확인용: PREVIEW_FORCE=1 이면 날짜·요일 제한 없이 세 언어를 한 편씩 만듭니다.
+  const force = process.env.PREVIEW_FORCE === '1';
+  let failed = null;
+
+  // 1) 한국어 (하루 한 편)
+  if (force || !(used.posts || []).some(p => p.date === todayStr)) {
+    const pick = pickKoTopic(config, used);
+    if (!pick) console.log('남은 한국어 주제가 없어 오늘은 발행하지 않습니다. config.json에 주제를 추가해주세요.');
+    else {
+      try { await publish(config, used, 'ko', pick.topic, pick.cat); }
+      catch (e) { failed = e; console.error('[ko] 실패:', e.message); }
+    }
+  } else console.log('오늘(' + todayStr + ') 한국어 글은 이미 발행되었습니다.');
+
+  // 2) 외국어 (정해진 요일에만)
+  for (const lang of ['ja', 'en']) {
+    if (!force && day !== FOREIGN_DAYS[lang]) continue;
+    const store = used.foreign[lang];
+    if (!force && store.posts.some(p => p.date === todayStr)) continue;
+    const key = lang === 'ja' ? 'topicsJa' : 'topicsEn';
+    const topic = (config[key] || []).find(t => !store.usedTopics.includes(t));
+    if (!topic) { console.log(`[${lang}] 남은 주제가 없습니다.`); continue; }
+    try { await publish(config, used, lang, topic); }
+    catch (e) { failed = failed || e; console.error(`[${lang}] 실패:`, e.message); }
   }
-  const topic = remaining[0];
 
-  console.log('선택된 주제:', topic);
-
-  const post = await callClaude(config, topic);
-  const slug = slugify(post.title) || slugify(topic) || ('post-' + Date.now());
-  const dateStr = new Date().toISOString().slice(0, 10);
-
-  if (!fs.existsSync(POSTS_DIR)) fs.mkdirSync(POSTS_DIR, { recursive: true });
-  post.slug = slug;   // canonical/og URL 을 만들려면 템플릿에서도 slug 가 필요합니다.
-  // 아래 파일명·목록 기록은 buildPostHTML 이 확정한 post.slug 를 그대로 씁니다.
-  // 같은 값을 쓰므로 canonical 주소와 실제 파일 이름이 어긋날 수 없습니다.
-  const postHtml = buildPostHTML(config, post, dateStr, (used.posts||[]).slice(-3));
-  fs.writeFileSync(path.join(POSTS_DIR, post.slug + '.html'), postHtml, 'utf8');
-
-  used.usedTopics.push(topic);
-  used.posts.push({ slug: post.slug, title: post.title, date: dateStr });
-  fs.writeFileSync(USED_PATH, JSON.stringify(used, null, 2), 'utf8');
-
-  updateBlogIndex(config, used.posts);
-  updateSitemap(config, used.posts);
-
-  console.log('발행 완료:', post.title);
+  updateSitemap(config, used);
+  if (failed) throw failed;
 }
 
 main().catch(err => {

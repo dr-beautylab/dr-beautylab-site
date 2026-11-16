@@ -1,0 +1,26 @@
+name: Preview Columns (temporary)
+on:
+  push:
+    branches: [preview-columns]
+    paths: ['.github/workflows/preview-columns.yml']
+permissions:
+  contents: write
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+      - name: Generate samples
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          PREVIEW_FORCE: '1'
+        run: node scripts/generate-blog.js
+      - name: Commit samples
+        run: |
+          git config user.name "auto-blog-bot"
+          git config user.email "auto-blog-bot@users.noreply.github.com"
+          git add blog/ ja/blog/ en/blog/ sitemap.xml
+          git commit -m "견본 글 생성" && git push
