@@ -115,7 +115,8 @@
     "눈썹 반영구 받기 전에 눈썹을 기르고 가야 하나요?",
     "퍼스널컬러에 따라 눈썹 반영구 색이 달라지나요?",
     "눈썹 반영구 후 화장은 어떻게 달라지나요?",
-    "눈썹 반영구 위에 눈썹을 더 그려도 되나요?"
+    "눈썹 반영구 위에 눈썹을 더 그려도 되나요?",
+    "두피문신은 무엇인가요?"
   ],
   "posts": [
     {
@@ -698,6 +699,38 @@
       "title": "눈썹 반영구 위에 눈썹을 더 그려도 되나요?",
       "date": "2026-11-16",
       "cat": "brow"
+    },
+    {
+      "slug": "두피문신은-무엇인가요",
+      "title": "두피문신은 무엇인가요?",
+      "date": "2026-11-16",
+      "cat": "scalp"
     }
-  ]
+  ],
+  "foreign": {
+    "ja": {
+      "usedTopics": [
+        "金浦空港の近くで眉アートメイクを受けられるお店はどこですか？"
+      ],
+      "posts": [
+        {
+          "slug": "ja-2026-11-16",
+          "title": "金浦空港の近くで眉アートメイクを受けられるお店はどこですか？",
+          "date": "2026-11-16"
+        }
+      ]
+    },
+    "en": {
+      "usedTopics": [
+        "Where can I get eyebrow semi-permanent makeup near Gimpo Airport?"
+      ],
+      "posts": [
+        {
+          "slug": "en-2026-11-16",
+          "title": "Where can I get eyebrow semi-permanent makeup near Gimpo Airport?",
+          "date": "2026-11-16"
+        }
+      ]
+    }
+  }
 }
