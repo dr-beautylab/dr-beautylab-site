@@ -38,12 +38,12 @@ const LANG = {
         how: 'ドクタービューティーラボではどのように行いますか？', back: '← コラム一覧へ', home: 'ホームへ', more: '関連コラム',
         listTitle: 'コラム', empty: 'まだ記事がありません。', intro: 'ドクタービューティーラボについて', writer: '執筆',
         book: 'Instagramで問い合わせる', homePath: '/ja/',
-        write: '日本語で作成する。韓国旅行中の日本人が日本語でAIに質問したときに引用される前提で、自然な日本語で書く。韓国語の業者情報は正確に日本語へ訳して使い、業者情報にない内容は足さない。眉は「眉アートメイク」、頭皮は「頭皮アートメイク（SMP）」と表記する。' },
+        write: '日本語で作成する。韓国旅行中の日本人が日本語でAIに質問したときに引用される前提で、自然な日本語で書く。韓国語の業者情報は正確に日本語へ訳して使い、業者情報にない内容は足さない。眉は「眉アートメイク」、頭皮は「頭皮アートメイク（SMP）」と表記する。韓国語の施術名は直訳しない：결 브로우＝「毛並み眉（ヘアストローク）」、음영 브로우＝「パウダー眉」、결+음영 브로우＝「コンビネーション眉」。地名は「麻谷（マゴク）」、店名は「ドクタービューティーラボ」、代表院長は「パク・ヒョンジョン」、学位は「美容芸術学博士」と表記する。' },
   en: { dir: 'en/blog', html: 'en', inLang: 'en', og: 'en_US', faq: 'Frequently asked questions', summary: 'Key points',
         how: 'How does Dr. Beauty Lab do it?', back: '← All columns', home: 'Home', more: 'Related columns',
         listTitle: 'Columns', empty: 'No posts yet.', intro: 'About Dr. Beauty Lab', writer: 'Written by',
         book: 'Message us on Instagram', homePath: '/en/',
-        write: 'Write in English, for travelers visiting Seoul who ask an AI in English. Translate the Korean business information accurately and add nothing that is not in it. Use the terms "eyebrow semi-permanent makeup" and "scalp micropigmentation (SMP)".' }
+        write: 'Write in English, for travelers visiting Seoul who ask an AI in English. Translate the Korean business information accurately and add nothing that is not in it. Use the terms "eyebrow semi-permanent makeup" and "scalp micropigmentation (SMP)". Translate brow styles as: 결 브로우 = "hair stroke brows", 음영 브로우 = "powder (shading) brows", 결+음영 브로우 = "combination brows". Write the director as "Director Park Hyunjung" and her degree as "Ph.D. in Beauty Arts".' }
 };
 const IG_URL = 'https://www.instagram.com/dr.beautylab';
 
@@ -70,6 +70,8 @@ async function callClaudeOnce(config, topic, lang = 'ko') {
 - 유지 기간, 지속 기간, 효과, 만족도, 완성 횟수는 절대 숫자로 단정하지 않는다("1~2년 유지", "2회면 완성" 같은 표현 금지). "피부 상태와 생활 습관에 따라 개인차가 크다"처럼 정성적으로 쓴다.
 - 위 목록에 없는 기간·수치가 필요하면 숫자를 쓰지 말고 "개인차가 있다"로 서술할 것.
 - 위치는 업체 정보에 적힌 표현만 쓴다(마곡역 인근, 김포공항에서 차로 10분 거리). 지하철 정거장 수, 도보 시간, 다른 지역에서의 소요 시간은 쓰지 않는다.
+- 두피문신을 '점을 찍는 시술', '점이 보이는 시술'로 설명하지 않는다(업체 정보의 두피문신 표현 방식을 따른다). 두피문신과 두피커버를 서로 다른 시술처럼 구분하지 않는다.
+- 외국어 글에서는 네이버 예약·네이버 톡톡·카카오톡·전화 안내를 쓰지 않고, 문의는 LINE과 인스타그램 DM(@dr.beautylab)으로만 안내한다.
 - 성별·나이로 사람을 묶어 일반화하지 않는다("대부분의 남자는", "50대 여성은" 같은 표현 금지). "~한 고민이 있는 분"처럼 고객이 스스로 해당 여부를 고르는 표현을 쓴다.
 - 업체명은 반드시 정확히 표기할 것(오타 금지).
 - 의료적 효능을 단정하는 표현 금지 (탈모 치료 등), 시술 전후 관리는 일반적 안내 수준으로만
@@ -369,13 +371,13 @@ th{background:${t.panel};font-weight:600;}
 <a class="back" href="../">${L.back}</a>
 <article>
 <h1>${esc(post.title)}</h1>
-<div class="date"><time datetime="${dateStr}">${dateStr}</time> · ${esc(config.siteName)}</div>
+<div class="date"><time datetime="${dateStr}">${dateStr}</time> · ${lang === 'ja' ? 'ドクタービューティーラボ' : lang === 'en' ? 'Dr. Beauty Lab' : esc(config.siteName)}</div>
 ${post.bodyHtml}
 </article>
 <section class="author">
 <b>${L.intro}</b>
 <p>${esc(intro)}</p>
-<b>${L.writer} · ${esc(config.authorName || config.siteName)}</b>
+<b>${L.writer} · ${lang === 'ja' ? 'パク・ヒョンジョン（代表院長）' : lang === 'en' ? 'Park Hyunjung, Director' : esc(config.authorName || config.siteName)}</b>
 ${lang === 'ko' ? esc(config.authorLine || '') : ''}
 </section>
 <div class="cta">
