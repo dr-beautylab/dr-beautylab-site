@@ -8,7 +8,8 @@
   "drbeautylab": {
     "name": "닥터뷰티랩 @dr.beautylab",
     "idSecret": "IG_ID_DRBEAUTYLAB",
-    "tokenSecret": "IG_TOKEN_DRBEAUTYLAB"
+    "tokenSecret": "IG_TOKEN_DRBEAUTYLAB",
+    "igId": "17841472660590737"
   },
   "drawyourlife": {
     "name": "당신을그리다 @drawyourlife_official",
