@@ -1,0 +1,50 @@
+name: 인스타 자동 게시
+
+on:
+  schedule:
+    - cron: '7 * * * *'   # 매시 7분마다 올릴 차례가 된 게시물을 확인
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: '시험 실행 (실제로 올리지 않음): 1'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+concurrency:
+  group: insta-autopost
+  cancel-in-progress: false
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: 올릴 차례인 게시물 올리기
+        env:
+          DRY_RUN: ${{ github.event.inputs.dry_run }}
+          IG_ID_ONEPASS: ${{ secrets.IG_ID_ONEPASS }}
+          IG_TOKEN_ONEPASS: ${{ secrets.IG_TOKEN_ONEPASS }}
+          IG_ID_DRBEAUTYLAB: ${{ secrets.IG_ID_DRBEAUTYLAB }}
+          IG_TOKEN_DRBEAUTYLAB: ${{ secrets.IG_TOKEN_DRBEAUTYLAB }}
+          IG_ID_DRAWYOURLIFE: ${{ secrets.IG_ID_DRAWYOURLIFE }}
+          IG_TOKEN_DRAWYOURLIFE: ${{ secrets.IG_TOKEN_DRAWYOURLIFE }}
+          IG_ID_JAY: ${{ secrets.IG_ID_JAY }}
+          IG_TOKEN_JAY: ${{ secrets.IG_TOKEN_JAY }}
+        run: node ig/post.mjs
+      - name: 올린 기록 저장
+        if: always()
+        run: |
+          if [ -n "$(git status --porcelain ig/posted.json)" ]; then
+            git config user.name "insta-autopost"
+            git config user.email "insta-autopost@users.noreply.github.com"
+            git add ig/posted.json
+            git commit -m "인스타 자동 게시 기록 [skip ci]"
+            git pull --rebase
+            git push
+          fi

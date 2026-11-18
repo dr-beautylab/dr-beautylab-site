@@ -1,0 +1,6 @@
+{
+  "onepass": { "name": "합격연구소 @dr.beautylab.onepass", "idSecret": "IG_ID_ONEPASS", "tokenSecret": "IG_TOKEN_ONEPASS" },
+  "drbeautylab": { "name": "닥터뷰티랩 @dr.beautylab", "idSecret": "IG_ID_DRBEAUTYLAB", "tokenSecret": "IG_TOKEN_DRBEAUTYLAB" },
+  "drawyourlife": { "name": "당신을그리다 @drawyourlife_official", "idSecret": "IG_ID_DRAWYOURLIFE", "tokenSecret": "IG_TOKEN_DRAWYOURLIFE" },
+  "jay": { "name": "원장 대상 @beautyallrounder_jay", "idSecret": "IG_ID_JAY", "tokenSecret": "IG_TOKEN_JAY" }
+}
