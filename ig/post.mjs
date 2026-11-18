@@ -47,7 +47,7 @@ async function urlOk(u) {
 }
 
 async function publish(acct, dir, rel) {
-  const igId = process.env[acct.idSecret], token = process.env[acct.tokenSecret];
+  const igId = acct.igId || process.env[acct.idSecret], token = process.env[acct.tokenSecret];
   if (!igId || !token) throw new Error(`${acct.name}: 연결 정보(${acct.idSecret}, ${acct.tokenSecret})가 설정에 없음`);
   const files = fs.readdirSync(dir);
   const caption = fs.readFileSync(path.join(dir, 'caption.txt'), 'utf8').trim();
@@ -93,7 +93,7 @@ for (const [key, acct] of Object.entries(ACCOUNTS)) {
   const due = fs.readdirSync(adir).filter(n => /^\d{4}-\d{2}-\d{2}-\d{4}_/.test(n)).sort()
     .filter(n => n.slice(0, 15) <= now && !log[`${key}/${n}`]?.id);
   if (!due.length) { console.log(`${acct.name}: 올릴 차례 없음`); continue; }
-  if (!process.env[acct.idSecret] || !process.env[acct.tokenSecret]) { console.log(`${acct.name}: 아직 연결 정보가 없어 건너뜀 (${due.length}개 대기)`); continue; }
+  if (!(acct.igId || process.env[acct.idSecret]) || !process.env[acct.tokenSecret]) { console.log(`${acct.name}: 아직 연결 정보가 없어 건너뜀 (${due.length}개 대기)`); continue; }
   const name = due[0]; // 한 번에 계정당 하나씩만
   const rel = path.join(key, name);
   try {
