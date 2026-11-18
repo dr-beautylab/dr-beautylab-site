@@ -85,6 +85,21 @@ async function publish(acct, dir, rel) {
   return { id: done.id };
 }
 
+// 릴스 시험 모드: 시험 영상으로 릴스 준비만 해 보고 실제로 올리지는 않는다 (준비본은 24시간 뒤 자동으로 사라짐)
+if (process.env.TEST_REEL === '1') {
+  const testUrl = (process.env.IG_TEST_REEL_URL || 'https://drbeautylab.co.kr/ig/test/reel-test.mp4');
+  let bad = false;
+  for (const acct of Object.values(ACCOUNTS)) {
+    const igId = acct.igId || process.env[acct.idSecret], token = process.env[acct.tokenSecret];
+    if (!igId || !token) { console.log(`${acct.name}: 연결 정보 없음 (건너뜀)`); continue; }
+    try {
+      const id = (await api('POST', `${GRAPH}/${igId}/media`, { media_type: 'REELS', video_url: testUrl, caption: '시험', share_to_feed: 'false', access_token: token })).id;
+      await waitReady(id, token);
+      console.log(`${acct.name}: 릴스 준비 성공 (올리지 않음)`);
+    } catch (e) { bad = true; console.log(`${acct.name}: 릴스 준비 실패 — ${e.message}`); }
+  }
+  process.exit(bad ? 1 : 0);
+}
 // 연결 확인만 하는 모드: 실제로 올리지 않고 계정 이름만 읽어 본다
 if (process.env.CHECK_ONLY === '1') {
   let bad = false;

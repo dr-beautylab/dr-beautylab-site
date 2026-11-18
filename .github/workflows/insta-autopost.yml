@@ -13,6 +13,10 @@ on:
         description: '연결 확인만 (올리지 않음): 1'
         required: false
         default: ''
+      test_reel:
+        description: '릴스 준비 시험 (올리지 않음): 1'
+        required: false
+        default: ''
 
 permissions:
   contents: write
@@ -33,6 +37,7 @@ jobs:
         env:
           DRY_RUN: ${{ github.event.inputs.dry_run }}
           CHECK_ONLY: ${{ github.event.inputs.check_only }}
+          TEST_REEL: ${{ github.event.inputs.test_reel }}
           IG_ID_ONEPASS: ${{ secrets.IG_ID_ONEPASS }}
           IG_TOKEN_ONEPASS: ${{ secrets.IG_TOKEN_ONEPASS }}
           IG_ID_DRBEAUTYLAB: ${{ secrets.IG_ID_DRBEAUTYLAB }}
