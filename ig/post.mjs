@@ -85,6 +85,20 @@ async function publish(acct, dir, rel) {
   return { id: done.id };
 }
 
+// 연결 확인만 하는 모드: 실제로 올리지 않고 계정 이름만 읽어 본다
+if (process.env.CHECK_ONLY === '1') {
+  let bad = false;
+  for (const acct of Object.values(ACCOUNTS)) {
+    const igId = acct.igId || process.env[acct.idSecret], token = process.env[acct.tokenSecret];
+    if (!igId || !token) { console.log(`${acct.name}: 연결 정보 없음 (아직 설정 전)`); continue; }
+    try {
+      const j = await api('GET', `${GRAPH}/${igId}`, { fields: 'username', access_token: token });
+      const lim = await api('GET', `${GRAPH}/${igId}/content_publishing_limit`, { fields: 'quota_usage,config', access_token: token }).catch(e => ({ err: e.message }));
+      console.log(`${acct.name}: 연결 정상 (@${j.username}) 게시 한도 ${JSON.stringify(lim.data?.[0] || lim.err)}`);
+    } catch (e) { bad = true; console.log(`${acct.name}: 연결 실패 — ${e.message}`); }
+  }
+  process.exit(bad ? 1 : 0);
+}
 const now = process.env.NOW_KST || nowKST();
 let changed = false, failed = false;
 for (const [key, acct] of Object.entries(ACCOUNTS)) {
