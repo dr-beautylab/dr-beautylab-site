@@ -30,6 +30,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: 최신 게시 기록 받기 (같은 게시물 두 번 올리기 방지)
+        run: git pull --ff-only origin main || true
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
