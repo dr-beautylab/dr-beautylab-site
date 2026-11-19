@@ -7,6 +7,7 @@ const path = require('path');
 
 const ROOT = process.cwd();
 const CONFIG_PATH = path.join(ROOT, 'blog', 'config.json');
+const { getRealCase, caseTopic, KO_DAYS } = require('./real-cases');
 const USED_PATH = path.join(ROOT, 'blog', 'used-topics.json');
 const POSTS_DIR = path.join(ROOT, 'blog', 'posts');
 const INDEX_PATH = path.join(ROOT, 'blog', 'index.html');
@@ -106,6 +107,9 @@ async function callClaudeOnce(config, topic, lang = 'ko') {
 - 업체 정보에 없는 주차, 길 안내, 소요 시간 같은 구체 정보
 - 출처 없는 통계·비율·퍼센트, 존재하지 않는 논문·기관·연구 인용
 - 주제에 의료적 판단이 필요한 부분이 있으면 그 부분은 빼고, 미용·디자인·관리 정보만 다룬다.
+
+- 업체 운영 방식(하루 3명 한정, 100% 예약제)과 대표원장 이력은 글 아래 고정 문구에 자동으로 들어가므로 본문에서 다시 쓰지 않는다.
+- 시술 후 경과 기간(딱지, 리터치 시기 등) 숫자는 주제가 시술 후 관리일 때만 쓴다. 다른 주제에서는 반복하지 않는다.
 
 업체 정보:
 ${config.businessInfo}
@@ -530,11 +534,13 @@ async function main() {
   let failed = null;
 
   // 1) 한국어 (하루 한 편)
-  if (force || !(used.posts || []).some(p => p.date === todayStr)) {
-    const pick = pickKoTopic(config, used);
+  const realCase = await getRealCase('drbeautylab', used.usedCases);
+  if (!force && !realCase && !KO_DAYS.includes(day)) console.log('오늘은 발행 요일(월·수·금)이 아니고 새 실제 사례도 없어 한국어 글을 쉽니다.');
+  else if (force || !(used.posts || []).some(p => p.date === todayStr)) {
+    const pick = realCase ? { topic: caseTopic(realCase.text), cat: 'case' } : pickKoTopic(config, used);
     if (!pick) console.log('남은 한국어 주제가 없어 오늘은 발행하지 않습니다. config.json에 주제를 추가해주세요.');
     else {
-      try { await publish(config, used, 'ko', pick.topic, pick.cat); }
+      try { await publish(config, used, 'ko', pick.topic, pick.cat); if (realCase) { used.usedCases = (used.usedCases || []).concat(realCase.id); fs.writeFileSync(USED_PATH, JSON.stringify(used, null, 2), 'utf8'); } }
       catch (e) { failed = e; console.error('[ko] 실패:', e.message); }
     }
   } else console.log('오늘(' + todayStr + ') 한국어 글은 이미 발행되었습니다.');
