@@ -10,6 +10,8 @@ const CONFIG_PATH = path.join(ROOT, 'blog', 'config.json');
 const USED_PATH = path.join(ROOT, 'blog', 'used-topics.json');
 const POSTS_DIR = path.join(ROOT, 'blog', 'posts');
 const INDEX_PATH = path.join(ROOT, 'blog', 'index.html');
+// 구글 애널리틱스 (새 블로그 글에도 자동 포함)
+const GA_TAG = '<script async src="https://www.googletagmanager.com/gtag/js?id=G-YCMJ7WEC1R"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-YCMJ7WEC1R",{allow_google_signals:false,allow_ad_personalization_signals:false});</script>';
 const SITEMAP_PATH = path.join(ROOT, 'sitemap.xml');
 const ROBOTS_PATH = path.join(ROOT, 'robots.txt');
 
@@ -367,7 +369,7 @@ th{background:${t.panel};font-weight:600;}
 .more li{font-size:13.5px;margin-bottom:6px;}
 .more a{color:${t.acc};text-decoration:none;}
 .home{display:block;text-align:center;margin-top:24px;font-size:13px;color:${t.inkSoft};text-decoration:underline;}
-</style></head><body><div class="page">
+</style>${GA_TAG}</head><body><div class="page">
 <a class="back" href="../">${L.back}</a>
 <article>
 <h1>${esc(post.title)}</h1>
@@ -419,7 +421,7 @@ body{background:#ddd;display:flex;justify-content:center;font-family:${t.fBody};
 .page{width:100%;max-width:600px;background:${t.bg};color:${t.ink};min-height:100vh;padding:32px 24px 60px;}
 .back{display:inline-block;font-size:13px;color:${t.acc};margin-bottom:20px;text-decoration:none;}
 h1{font-family:${t.fDisplay};font-size:22px;margin-bottom:20px;}
-</style></head><body><div class="page">
+</style>${GA_TAG}</head><body><div class="page">
 <a class="back" href="${L.homePath}">← ${L.home}</a>
 <h1>${esc(config.siteName)} ${L.listTitle}</h1>
 ${items || '<p style="color:' + t.inkSoft + ';font-size:13px;">' + L.empty + '</p>'}
