@@ -112,6 +112,17 @@ if (process.env.CHECK_ONLY === '1') {
       console.log(`${acct.name}: 연결 정상 (@${j.username}) 게시 한도 ${JSON.stringify(lim.data?.[0] || lim.err)}`);
     } catch (e) { bad = true; console.log(`${acct.name}: 연결 실패 — ${e.message}`); }
   }
+  // 이 연결 열쇠로 볼 수 있는 페이지와 인스타 계정 목록 (새 계정을 붙일 때 확인용, 열쇠 값은 찍지 않는다)
+  const seen = new Set();
+  for (const acct of Object.values(ACCOUNTS)) {
+    const token = process.env[acct.tokenSecret];
+    if (!token || seen.has(token)) continue; seen.add(token);
+    try {
+      const j = await api('GET', `${GRAPH}/me/accounts`, { fields: 'name,instagram_business_account{id,username}', limit: '50', access_token: token });
+      for (const pg of j.data || []) console.log(`[${acct.tokenSecret}] 페이지 "${pg.name}" → 인스타 ${pg.instagram_business_account ? '@' + pg.instagram_business_account.username + ' (' + pg.instagram_business_account.id + ')' : '연결 없음'}`);
+      if (!(j.data || []).length) console.log(`[${acct.tokenSecret}] 볼 수 있는 페이지 목록 없음`);
+    } catch (e) { console.log(`[${acct.tokenSecret}] 페이지 목록 확인 불가 — ${e.message.slice(0, 160)}`); }
+  }
   process.exit(bad ? 1 : 0);
 }
 const now = process.env.NOW_KST || nowKST();
