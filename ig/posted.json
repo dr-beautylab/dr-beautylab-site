@@ -4,8 +4,8 @@
     "at": "2026-11-19T10:04:14.494Z"
   },
   "onepass/2026-11-20-1900_winter-start": {
-    "error": "인스타 응답 오류: {\"message\":\"Cannot call API for app 1867943007716405 on behalf of user 1129669846374701\",\"type\":\"OAuthException\",\"code\":200,\"fbtrace_id\":\"AyODc6AaF5vT3NQACTtJ6Mj\"}",
-    "at": "2026-11-20T11:01:25.100Z",
-    "tries": 2
+    "error": "인스타 응답 오류: {\"message\":\"Cannot call API for app 1867943007716405 on behalf of user 1129669846374701\",\"type\":\"OAuthException\",\"code\":200,\"fbtrace_id\":\"A5LhZ1M1dXI9a3Hmv80Oz6z\"}",
+    "at": "2026-11-20T11:29:01.773Z",
+    "tries": 3
   }
 }
