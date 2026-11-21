@@ -742,8 +742,16 @@
       ]
     },
     "en": {
-      "usedTopics": [],
-      "posts": []
+      "usedTopics": [
+        "Where can I get eyebrow semi-permanent makeup near Gimpo Airport?"
+      ],
+      "posts": [
+        {
+          "slug": "en-2026-11-21",
+          "title": "Where Can I Get Eyebrow Semi-Permanent Makeup Near Gimpo Airport?",
+          "date": "2026-11-21"
+        }
+      ]
     }
   }
 }
