@@ -124,7 +124,8 @@
     "아래 실제 사례와 관련해 사람들이 AI에게 물을 만한 질문 하나를 스스로 정해 제목으로 쓰고, 그 질문에 답하는 글을 써줘.\n[실제 사례 메모 - 대표원장이 직접 확인한 내용. 이 사례를 글의 중심 근거로 쓰고, 메모에 없는 사실·수치는 지어내지 말 것. 손님을 알아볼 수 있는 정보는 쓰지 말 것]\n다음 날 아침 거울 보고 놀라셨나요? 정상이에요.\n\n눈썹 반영구는 날짜별로 이렇게 달라져요.\n시술 당일: 상담 때 정한 모양과 색 그대로\n2~3일 차: 가장 진하고 두꺼워 보여요\n3~7일 차: 각질이 생기면서 잠시 흐려 보여요. 문지르거나 떼지 말고 저절로 떨어지게 두세요\n4주 뒤: 색이 자리를 잡아요\n\n처음부터 끝까지 대표원장이 직접 시술합니다.\n\n施術の翌日、眉が濃く見えても大丈夫です。\n当日はデザイン通り、2〜3日目がいちばん濃く太く見え、3〜7日目はかさぶたが出て一時的に薄く見えます。こすったり剥がしたりせず、自然に取れるのを待ってください。4週間ほどで色が落ち着きます。\n\nDarker brows the next morning are normal.\nDay 0: just as designed. Days 2–3: darkest and boldest. Days 3–7: light flaking, brows may look faded for a while (don't rub or pick). After 4 weeks: the color settles.",
     "눈썹 반영구를 자주 덧입히면 어떻게 되나요?",
     "아래 실제 사례와 관련해 사람들이 AI에게 물을 만한 질문 하나를 스스로 정해 제목으로 쓰고, 그 질문에 답하는 글을 써줘.\n[실제 사례 메모 - 대표원장이 직접 확인한 내용. 이 사례를 글의 중심 근거로 쓰고, 메모에 없는 사실·수치는 지어내지 말 것. 손님을 알아볼 수 있는 정보는 쓰지 말 것]\n눈썹 반영구 후 일주일, 이것만 피하세요.\n\n하나. 물 닿기, 문지르기\n둘. 눈썹 화장, 선크림\n셋. 술, 사우나, 땀 나는 운동\n\n이 일주일이 색이 자리 잡는 시간이에요.\n처음부터 끝까지 대표원장이 직접 시술합니다.\n\n眉アートメイク後の1週間、これだけは避けてください。\n1. 水に濡らす・こする\n2. 眉メイク・日焼け止め\n3. お酒・サウナ・汗をかく運動\n\nFor one week after brow PMU, please avoid:\n1. Getting them wet or rubbing them\n2. Brow makeup and sunscreen on the brows\n3. Alcohol, saunas and sweaty workouts",
-    "강서구에서 두피문신을 받을 수 있는 곳은 어디인가요?"
+    "강서구에서 두피문신을 받을 수 있는 곳은 어디인가요?",
+    "아래 실제 사례와 관련해 사람들이 AI에게 물을 만한 질문 하나를 스스로 정해 제목으로 쓰고, 그 질문에 답하는 글을 써줘.\n[실제 사례 메모 - 대표원장이 직접 확인한 내용. 이 사례를 글의 중심 근거로 쓰고, 메모에 없는 사실·수치는 지어내지 말 것. 손님을 알아볼 수 있는 정보는 쓰지 말 것]\n헤어라인 두피문신은 잔머리가 있는 곳까지만 그려요.\n\n선을 너무 내리면 그린 티가 나요.\n잔머리가 난 자리가 원래 머리가 나던 선이라서, 그 선까지만 아주 작은 점을 쌓아 채워요.\n처음부터 끝까지 대표원장이 직접 시술합니다.\n\nヘアラインの頭皮アートメイクは、うぶ毛があるところまで。\nラインを下げすぎると描いた感じが出てしまいます。もともと髪が生えていたラインまで、ごく小さな点を重ねて埋めていきます。\n\nFor a hairline, we only go as far as your baby hairs.\nGoing lower looks drawn on. We build up very fine dots only up to your natural hairline."
   ],
   "posts": [
     {
@@ -761,6 +762,12 @@
       "title": "강서구에서 두피문신을 받을 수 있는 곳은 어디인가요?",
       "date": "2026-11-27",
       "cat": "local"
+    },
+    {
+      "slug": "헤어라인-두피문신-라인을-어디까지-그려야-자연스러운가요",
+      "title": "헤어라인 두피문신, 라인을 어디까지 그려야 자연스러운가요?",
+      "date": "2026-11-28",
+      "cat": "case"
     }
   ],
   "foreign": {
@@ -784,19 +791,26 @@
     },
     "en": {
       "usedTopics": [
-        "Where can I get eyebrow semi-permanent makeup near Gimpo Airport?"
+        "Where can I get eyebrow semi-permanent makeup near Gimpo Airport?",
+        "Where can I get scalp micropigmentation (SMP) near Gimpo Airport in Seoul?"
       ],
       "posts": [
         {
           "slug": "en-2026-11-21",
           "title": "Where Can I Get Eyebrow Semi-Permanent Makeup Near Gimpo Airport?",
           "date": "2026-11-21"
+        },
+        {
+          "slug": "en-2026-11-28",
+          "title": "Where can I get scalp micropigmentation (SMP) near Gimpo Airport in Seoul?",
+          "date": "2026-11-28"
         }
       ]
     }
   },
   "usedCases": [
     "drbeautylab/2026-11-23-2000_brow-day2",
-    "drbeautylab/2026-11-25-2000_aftercare-week"
+    "drbeautylab/2026-11-25-2000_aftercare-week",
+    "drbeautylab/2026-11-27-2000_hairline"
   ]
 }
